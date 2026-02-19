@@ -7,12 +7,23 @@ MCP server for health & fitness data. (Prototype)
 - Expose normalized schemas + tools via MCP
 - Keep credentials local; avoid sending raw data unless explicitly requested
 
-## Planned MCP tools (draft)
+## MCP Server
+This repo now includes a minimal MCP server scaffold using stdio.
+
+### Install
+```bash
+npm install
+```
+
+### Run (stdio MCP)
+```bash
+npm run dev
+```
+
+### Tools (currently stubbed)
 - `list_sources()`
-- `connect_source(source, credentials)`
 - `get_workouts(start_date, end_date, source?)`
-- `get_metrics(start_date, end_date, metrics, source?)`
-- `get_activity_summary(period)`
 
 ## Status
-- Scaffold only. Next step: add a minimal MCP server implementation and one data source.
+- MCP server scaffold is wired.
+- Next: add a real data source connector (Apple Health export, Strava, etc.).
