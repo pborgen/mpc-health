@@ -1,12 +1,14 @@
 import { Server } from "@modelcontextprotocol/sdk/server/index.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
+import { loadAppleHealthWorkouts } from "./sources/appleHealth.js";
+import { loadStravaWorkouts } from "./sources/strava.js";
 
 export async function startServer() {
   const server = new Server(
     {
       name: "mpc-health",
-      version: "0.1.0",
+      version: "0.2.0",
     },
     {
       capabilities: {
@@ -22,11 +24,8 @@ export async function startServer() {
     async () => {
       return {
         sources: [
-          { id: "apple_health", name: "Apple Health (export)" },
-          { id: "strava", name: "Strava" },
-          { id: "fitbit", name: "Fitbit" },
-          { id: "garmin", name: "Garmin" },
-          { id: "google_fit", name: "Google Fit" },
+          { id: "apple_health", name: "Apple Health (export)", status: process.env.APPLE_HEALTH_EXPORT_PATH ? "configured" : "needs_config" },
+          { id: "strava", name: "Strava", status: process.env.STRAVA_ACCESS_TOKEN ? "configured" : "needs_config" },
         ],
       };
     }
@@ -34,17 +33,38 @@ export async function startServer() {
 
   server.tool(
     "get_workouts",
-    "Get workouts within a date range (stub).",
+    "Get workouts within a date range.",
     {
       start_date: z.string().describe("ISO date, e.g. 2026-02-01"),
       end_date: z.string().describe("ISO date, e.g. 2026-02-19"),
-      source: z.string().optional().describe("Optional source id"),
+      source: z.enum(["apple_health", "strava"]).optional().describe("Optional source id"),
     },
     async ({ start_date, end_date, source }) => {
+      const results = [];
+      const warnings = [];
+
+      if (!source || source === "apple_health") {
+        const res = await loadAppleHealthWorkouts({
+          exportPath: process.env.APPLE_HEALTH_EXPORT_PATH,
+        });
+        if (res.warning) warnings.push(res.warning);
+        results.push(...res.workouts);
+      }
+
+      if (!source || source === "strava") {
+        const res = await loadStravaWorkouts({
+          accessToken: process.env.STRAVA_ACCESS_TOKEN,
+          startDate: start_date,
+          endDate: end_date,
+        });
+        if (res.warning) warnings.push(res.warning);
+        results.push(...res.workouts);
+      }
+
       return {
-        message: "Stub response. Wire a real data source connector.",
         params: { start_date, end_date, source },
-        workouts: [],
+        warnings,
+        workouts: results,
       };
     }
   );

@@ -8,11 +8,24 @@ MCP server for health & fitness data. (Prototype)
 - Keep credentials local; avoid sending raw data unless explicitly requested
 
 ## MCP Server
-This repo now includes a minimal MCP server scaffold using stdio.
+Minimal MCP server scaffold using stdio, with two sources wired:
+- Apple Health export (local file)
+- Strava (API)
 
 ### Install
 ```bash
 npm install
+```
+
+### Configure
+Set env vars:
+
+```bash
+# Apple Health export directory or export.xml path
+export APPLE_HEALTH_EXPORT_PATH=~/Downloads/apple-health-export
+
+# Strava API token
+export STRAVA_ACCESS_TOKEN=... 
 ```
 
 ### Run (stdio MCP)
@@ -20,10 +33,10 @@ npm install
 npm run dev
 ```
 
-### Tools (currently stubbed)
+### Tools
 - `list_sources()`
 - `get_workouts(start_date, end_date, source?)`
 
-## Status
-- MCP server scaffold is wired.
-- Next: add a real data source connector (Apple Health export, Strava, etc.).
+## Notes
+- Apple Health ZIP exports are not supported yet — point to `export.xml` or its directory.
+- Strava uses the `/athlete/activities` endpoint (50 results max per call).
